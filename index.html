@@ -327,11 +327,13 @@
   .work-card {
     position: relative;
     overflow: hidden;
-    cursor: none;
-    group: true;
+    cursor: pointer;
     background: var(--bg);
     border: 1px solid var(--border);
     transition: border-color 0.3s;
+    display: block;
+    text-decoration: none;
+    color: inherit;
   }
   .work-card:hover { border-color: var(--accent); }
   .work-card-thumb {
@@ -353,6 +355,8 @@
     opacity: 0;
     transition: opacity 0.3s;
     display: flex; align-items: flex-end; padding: 1.5rem;
+    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--white);
   }
   .work-card:hover .work-card-overlay { opacity: 1; }
   .play-btn {
@@ -856,10 +860,10 @@
 
   <div class="work-grid">
 
-    <div class="work-card fade-in">
+    <a class="work-card fade-in" href="https://x.com/allTimePR/status/2000877161851576573" target="_blank" rel="noopener noreferrer">
       <div class="work-card-thumb thumb-1">
         <div class="work-card-thumb-inner">🎬</div>
-        <div class="work-card-overlay"></div>
+        <div class="work-card-overlay">Watch on X →</div>
         <div class="play-btn">▶</div>
       </div>
       <div class="work-card-info">
@@ -867,46 +871,46 @@
         <div class="work-card-title">irlcoin Thesis Film</div>
         <div class="work-card-desc">Full AI-generated thesis video for @irlcoin_. Took nearly a week to perfect — every frame hand-crafted and layered.</div>
       </div>
-    </div>
+    </a>
 
-    <div class="work-card fade-in">
+    <a class="work-card fade-in" href="https://x.com/allTimePR/status/2000877708960755909" target="_blank" rel="noopener noreferrer">
       <div class="work-card-thumb thumb-2">
-        <div class="work-card-thumb-inner">🌆</div>
-        <div class="work-card-overlay"></div>
+        <div class="work-card-thumb-inner">🚀</div>
+        <div class="work-card-overlay">Watch on X →</div>
         <div class="play-btn">▶</div>
       </div>
       <div class="work-card-info">
-        <div class="work-card-tag">Frame by Frame</div>
-        <div class="work-card-title">Cyberpunk City Reel</div>
-        <div class="work-card-desc">Completely AI generated frame by frame. Added custom transition layers to each frame — one of the most technical pieces.</div>
+        <div class="work-card-tag">Viral · 60K Views on TikTok</div>
+        <div class="work-card-title">Pumpfolio — irlcoin</div>
+        <div class="work-card-desc">The pumpfolio promo for @irlcoin_ that hit 60K views on TikTok. Sharp cuts, clean energy, built to go viral.</div>
       </div>
-    </div>
+    </a>
 
-    <div class="work-card fade-in">
+    <a class="work-card fade-in" href="https://x.com/allTimePR/status/2025601081368346788" target="_blank" rel="noopener noreferrer">
       <div class="work-card-thumb thumb-3">
-        <div class="work-card-thumb-inner">🕷️</div>
-        <div class="work-card-overlay"></div>
+        <div class="work-card-thumb-inner">🧪</div>
+        <div class="work-card-overlay">Watch on X →</div>
         <div class="play-btn">▶</div>
       </div>
       <div class="work-card-info">
         <div class="work-card-tag">AI + Cinematic</div>
-        <div class="work-card-title">$PLOTTING Series</div>
-        <div class="work-card-desc">36-video content series created for $PLOTTING. Narrative-driven AI edits blending visual storytelling with crypto culture.</div>
+        <div class="work-card-title">Heisenberg — Rare Artifact Hunt</div>
+        <div class="work-card-desc">Cinematic AI film where Heisenberg hunts down a rare artifact. Every scene is a visual statement — this one's a rare cook.</div>
       </div>
-    </div>
+    </a>
 
-    <div class="work-card fade-in">
+    <a class="work-card fade-in" href="https://x.com/allTimePR/status/2024199424604590471" target="_blank" rel="noopener noreferrer">
       <div class="work-card-thumb thumb-4">
         <div class="work-card-thumb-inner">⚡</div>
-        <div class="work-card-overlay"></div>
+        <div class="work-card-overlay">Watch on X →</div>
         <div class="play-btn">▶</div>
       </div>
       <div class="work-card-info">
-        <div class="work-card-tag">Pro Edit</div>
-        <div class="work-card-title">KOL Promo — Sling</div>
-        <div class="work-card-desc">A full custom KOL video with AI-generated imagery and hand-built transitions. Every frame generated, every cut surgical.</div>
+        <div class="work-card-tag">Pro Edit · Studio Level</div>
+        <div class="work-card-title">Telegram Bot — Action Promo</div>
+        <div class="work-card-desc">Promo video for a Telegram bot with studio-level action scenes. Cinematic tension, precise cuts, hard-hitting from frame one.</div>
       </div>
-    </div>
+    </a>
 
     <div class="work-card fade-in">
       <div class="work-card-thumb thumb-5">
