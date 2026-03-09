@@ -694,16 +694,114 @@
     text-align: center;
   }
 
+  /* HAMBURGER */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 4px;
+    z-index: 200;
+    background: none;
+    border: none;
+  }
+  .hamburger span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--white);
+    transition: transform 0.3s, opacity 0.3s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* MOBILE NAV DRAWER */
+  .mobile-nav {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(8,8,8,0.97);
+    backdrop-filter: blur(16px);
+    z-index: 150;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .mobile-nav.open {
+    display: flex;
+    opacity: 1;
+    pointer-events: all;
+  }
+  .mobile-nav a {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .mobile-nav a:hover { color: var(--accent); }
+
+  @media (hover: none) and (pointer: coarse) {
+    body { cursor: auto; }
+    .cursor, .cursor-ring { display: none; }
+    .btn-primary, .btn-ghost, .contact-link { cursor: pointer; }
+  }
+
   @media (max-width: 768px) {
     nav { padding: 1.25rem 1.5rem; }
     .nav-links { display: none; }
+    .hamburger { display: flex; }
+
     section { padding: 5rem 1.5rem; }
-    .hero { padding: 7rem 1.5rem 3rem; }
-    .hero-stats { position: static; margin-top: 3rem; flex-direction: row; gap: 2rem; }
-    .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .hero { padding: 7rem 1.5rem 8rem; min-height: 100svh; }
+    .hero-bg-text { display: none; }
+
+    .hero-stats {
+      position: absolute;
+      bottom: 2rem; left: 1.5rem; right: 1.5rem;
+      flex-direction: row;
+      gap: 2rem;
+      justify-content: flex-start;
+    }
+    .stat { text-align: left; }
+    .stat-num { font-size: 2.2rem; }
+
+    .hero-cta { flex-direction: column; gap: 1rem; }
+    .btn-primary, .btn-ghost { width: 100%; text-align: center; padding: 1rem 1.5rem; box-sizing: border-box; }
+
+    .work-grid { grid-template-columns: 1fr; gap: 1rem; }
+
+    .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    #aboutImg { width: 100% !important; height: 220px !important; }
+
+    .skills-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
     .process-list { grid-template-columns: 1fr; }
-    .process-item { margin: -1px 0 0; }
-    footer { flex-direction: column; gap: 1rem; text-align: center; }
+    .process-item { margin: -1px 0 0; padding: 2rem 1.5rem; }
+
+    .contact-inner { margin-top: 2.5rem; }
+    .contact-links { flex-direction: column; }
+    .contact-link { width: 100%; justify-content: center; }
+
+    .shooter-wrapper { bottom: 1.5rem; right: 1.5rem; }
+    .shooter-frame { width: 56px; height: 56px; }
+    .progress-ring { width: 64px; height: 64px; top: -4px; left: -4px; }
+
+    footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem 1.5rem; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-name { font-size: clamp(4rem, 18vw, 6rem); }
+    .section-title { font-size: clamp(2rem, 8vw, 3rem); }
+    .hero-sub { font-size: 0.95rem; }
+    .process-item { padding: 1.5rem 1.25rem; }
+    .about-body { font-size: 0.95rem; }
   }
 </style>
 </head>
@@ -717,6 +815,14 @@
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 
+<!-- MOBILE NAV DRAWER -->
+<div class="mobile-nav" id="mobileNav">
+  <a href="#work" onclick="closeMobileNav()">Work</a>
+  <a href="#about" onclick="closeMobileNav()">About</a>
+  <a href="#process" onclick="closeMobileNav()">Process</a>
+  <a href="#contact" onclick="closeMobileNav()">Contact</a>
+</div>
+
 <!-- NAV -->
 <nav id="nav">
   <a href="#" class="nav-logo">P<span>R</span></a>
@@ -726,6 +832,9 @@
     <li><a href="#process">Process</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
+  <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMobileNav()">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
 <!-- PROFILE SHOOTER -->
@@ -1122,6 +1231,18 @@
 
     lastScrollY = currentY;
   }, { passive: true });
+
+  // Mobile nav
+  function toggleMobileNav() {
+    const nav = document.getElementById('mobileNav');
+    const btn = document.getElementById('hamburger');
+    nav.classList.toggle('open');
+    btn.classList.toggle('open');
+  }
+  function closeMobileNav() {
+    document.getElementById('mobileNav').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+  }
 
   // Fade in on scroll
   const obs = new IntersectionObserver(entries => {
