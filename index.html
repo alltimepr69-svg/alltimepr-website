@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PR — Video Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080808;
+    --surface: #101010;
+    --accent: #ff3c00;
+    --accent2: #00ffe0;
+    --gold: #f5c842;
+    --white: #f0ede6;
+    --muted: #555;
+    --border: #1e1e1e;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+    mix-blend-mode: difference;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid var(--accent2);
+    border-radius: 50%;
+    position: fixed; top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.15s ease, width 0.2s, height 0.2s;
+    mix-blend-mode: difference;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9000;
+    opacity: 0.5;
+  }
+
+  /* SCANLINES */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 8999;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.5rem 3rem;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  nav.scrolled {
+    background: rgba(8,8,8,0.9);
+    border-color: var(--border);
+    backdrop-filter: blur(10px);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute; left: 0; bottom: -4px;
+    width: 0; height: 1px;
+    background: var(--accent);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    padding: 8rem 3rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg-text {
+    position: absolute;
+    right: -2rem; top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20vw;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.03);
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+  }
+  .hero-tag {
+    font-size: 0.65rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .hero-tag::before {
+    content: '';
+    display: inline-block;
+    width: 2rem; height: 1px;
+    background: var(--accent);
+  }
+  .hero-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 14vw, 14rem);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    margin-bottom: 0.2em;
+  }
+  .hero-name .line2 { 
+    color: transparent;
+    -webkit-text-stroke: 2px var(--white);
+  }
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    color: var(--muted);
+    max-width: 480px;
+    line-height: 1.7;
+    margin-top: 2rem;
+    font-weight: 300;
+  }
+  .hero-sub .highlight { color: var(--accent2); font-weight: 500; }
+  .hero-cta {
+    margin-top: 3rem;
+    display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--white);
+    border: none;
+    padding: 1rem 2.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(255,60,0,0.4);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 1rem 2.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: none;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--white); border-color: var(--muted); }
+
+  .hero-stats {
+    position: absolute;
+    bottom: 3rem; right: 3rem;
+    display: flex; gap: 3rem;
+  }
+  .stat { text-align: right; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    line-height: 1;
+    color: var(--white);
+  }
+  .stat-num span { color: var(--accent); }
+  .stat-label {
+    font-size: 0.6rem; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
+  /* TYPEWRITER */
+  .typewriter { display: inline; }
+  .typewriter::after {
+    content: '|';
+    color: var(--accent);
+    animation: blink 0.8s infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* MARQUEE */
+  .marquee-section {
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+    background: var(--surface);
+  }
+  .marquee-track {
+    display: flex; gap: 3rem;
+    white-space: nowrap;
+    animation: marquee 20s linear infinite;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+  .marquee-track span { color: var(--accent); }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* SECTION BASE */
+  section { padding: 7rem 3rem; }
+  .section-label {
+    font-size: 0.6rem; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .section-label::before {
+    content: attr(data-num);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    color: var(--muted);
+    letter-spacing: 0;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ABOUT */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    margin-top: 4rem;
+    align-items: start;
+  }
+  .about-body {
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: #aaa;
+    font-weight: 300;
+  }
+  .about-body strong { color: var(--white); font-weight: 500; }
+  .about-body .accent { color: var(--accent2); }
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .skill-pill {
+    border: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition: border-color 0.2s, color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .skill-pill::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 0.2s;
+  }
+  .skill-pill:hover { color: var(--white); border-color: var(--accent); }
+  .skill-pill:hover::before { transform: scaleY(1); }
+
+  /* WORK */
+  .work { background: var(--surface); }
+  .work-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.5rem;
+    margin-top: 4rem;
+  }
+  .work-card {
+    position: relative;
+    overflow: hidden;
+    cursor: none;
+    group: true;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    transition: border-color 0.3s;
+  }
+  .work-card:hover { border-color: var(--accent); }
+  .work-card-thumb {
+    aspect-ratio: 16/9;
+    background: #111;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .work-card-thumb-inner {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3rem;
+    transition: transform 0.4s ease;
+  }
+  .work-card:hover .work-card-thumb-inner { transform: scale(1.05); }
+  .work-card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    display: flex; align-items: flex-end; padding: 1.5rem;
+  }
+  .work-card:hover .work-card-overlay { opacity: 1; }
+  .play-btn {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    width: 52px; height: 52px;
+    border: 2px solid var(--white);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s, transform 0.3s;
+    color: var(--white);
+    font-size: 1.2rem;
+  }
+  .work-card:hover .play-btn {
+    opacity: 1; transform: translate(-50%, -50%) scale(1);
+  }
+  .work-card-info { padding: 1.25rem; }
+  .work-card-tag {
+    font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.5rem;
+  }
+  .work-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--white);
+  }
+  .work-card-desc {
+    font-size: 0.75rem; line-height: 1.6;
+    color: var(--muted);
+  }
+
+  /* Gradient BGs for cards */
+  .thumb-1 { background: linear-gradient(135deg, #0a0a2e, #1a0030, #2d0020); }
+  .thumb-2 { background: linear-gradient(135deg, #001a1a, #003322, #002211); }
+  .thumb-3 { background: linear-gradient(135deg, #1a0800, #3d1500, #200a00); }
+  .thumb-4 { background: linear-gradient(135deg, #0d0d0d, #1a1a00, #0a0a00); }
+  .thumb-5 { background: linear-gradient(135deg, #00101a, #001a3d, #000d20); }
+  .thumb-6 { background: linear-gradient(135deg, #1a0010, #2d0030, #0a0015); }
+
+  /* PROCESS */
+  .process-list {
+    margin-top: 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+  }
+  .process-item {
+    padding: 3rem;
+    border: 1px solid var(--border);
+    margin: -1px 0 0 -1px;
+    position: relative;
+    transition: background 0.3s;
+  }
+  .process-item:hover { background: rgba(255,60,0,0.03); }
+  .process-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--border);
+    line-height: 1;
+    margin-bottom: 1.5rem;
+    transition: -webkit-text-stroke-color 0.3s;
+  }
+  .process-item:hover .process-num { -webkit-text-stroke-color: var(--accent); }
+  .process-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  .process-desc { font-size: 0.78rem; line-height: 1.7; color: var(--muted); }
+
+  /* CONTACT */
+  .contact { background: var(--surface); }
+  .contact-inner {
+    max-width: 680px;
+    margin-top: 4rem;
+  }
+  .contact-sub {
+    font-size: 1rem; color: var(--muted); line-height: 1.8;
+    margin-bottom: 3rem;
+    font-weight: 300;
+  }
+  .contact-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .contact-link {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.9rem 1.5rem;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    cursor: none;
+  }
+  .contact-link:hover {
+    color: var(--white);
+    border-color: var(--accent);
+    background: rgba(255,60,0,0.05);
+  }
+  .contact-link .icon { font-size: 1rem; }
+
+  /* FOOTER */
+  footer {
+    padding: 2rem 3rem;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* GLITCH */
+  .glitch {
+    position: relative;
+    display: inline-block;
+  }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute; top: 0; left: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+  }
+  .glitch::before {
+    color: var(--accent);
+    clip-path: polygon(0 15%, 100% 15%, 100% 30%, 0 30%);
+    transform: translateX(-3px);
+    animation: glitch-1 4s infinite;
+  }
+  .glitch::after {
+    color: var(--accent2);
+    clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%);
+    transform: translateX(3px);
+    animation: glitch-2 4s infinite;
+  }
+  @keyframes glitch-1 {
+    0%, 90%, 100% { transform: translateX(-3px); opacity: 1; }
+    92% { transform: translateX(8px); opacity: 0.8; }
+    94% { transform: translateX(-5px); opacity: 0.9; }
+    96% { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes glitch-2 {
+    0%, 90%, 100% { transform: translateX(3px); opacity: 1; }
+    91% { transform: translateX(-8px); opacity: 0.8; }
+    93% { transform: translateX(5px); opacity: 0.9; }
+    95% { transform: translateX(0); opacity: 1; }
+  }
+
+  /* FADE IN */
+  .fade-in { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* PROFILE SHOOTER */
+  .shooter-wrapper {
+    position: fixed;
+    bottom: 2.5rem;
+    right: 2.5rem;
+    z-index: 500;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* Bullet trail */
+  .bullet-trail {
+    width: 3px;
+    height: 0px;
+    background: linear-gradient(to top, transparent, var(--accent), #fff);
+    border-radius: 2px;
+    margin-bottom: -2px;
+    transform-origin: bottom;
+    opacity: 0;
+    transition: height 0.15s ease-out, opacity 0.15s;
+    box-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent);
+  }
+  .bullet-trail.firing {
+    opacity: 1;
+  }
+
+  /* Bullet dot */
+  .bullet {
+    width: 7px;
+    height: 14px;
+    background: linear-gradient(to top, var(--accent), #ffe599);
+    border-radius: 4px 4px 2px 2px;
+    margin-bottom: -2px;
+    opacity: 0;
+    transform: translateY(0px);
+    box-shadow: 0 0 8px var(--accent), 0 0 20px rgba(255,60,0,0.6);
+  }
+  .bullet.fire {
+    animation: bullet-fly 0.55s ease-out forwards;
+  }
+  @keyframes bullet-fly {
+    0%   { opacity: 1; transform: translateY(0px); }
+    60%  { opacity: 1; transform: translateY(-120px); }
+    100% { opacity: 0; transform: translateY(-200px); }
+  }
+
+  .shooter-frame {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 4px rgba(255,60,0,0.15), 0 0 20px rgba(255,60,0,0.3);
+    position: relative;
+    transition: box-shadow 0.3s;
+    flex-shrink: 0;
+  }
+  .shooter-frame.recoil {
+    animation: recoil 0.25s ease-out;
+  }
+  @keyframes recoil {
+    0%   { transform: translateY(0) rotate(0deg); }
+    30%  { transform: translateY(6px) rotate(-3deg); }
+    60%  { transform: translateY(-3px) rotate(1deg); }
+    100% { transform: translateY(0) rotate(0deg); }
+  }
+  .shooter-frame img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: grayscale(20%) contrast(1.1);
+  }
+
+  /* Muzzle flash */
+  .muzzle-flash {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, #ffdd00 40%, var(--accent) 70%, transparent 100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .muzzle-flash.flash {
+    animation: flash-anim 0.2s ease-out forwards;
+  }
+  @keyframes flash-anim {
+    0%   { opacity: 1; transform: translateX(-50%) scale(0.5); }
+    40%  { opacity: 1; transform: translateX(-50%) scale(1.4); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+  }
+
+  /* Scroll progress ring */
+  .progress-ring {
+    position: absolute;
+    top: -4px; left: -4px;
+    width: 80px; height: 80px;
+    transform: rotate(-90deg);
+    pointer-events: none;
+  }
+  .progress-ring circle {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-dasharray: 226;
+    stroke-dashoffset: 226;
+    transition: stroke-dashoffset 0.1s linear;
+    opacity: 0.7;
+  }
+
+  /* Shell casings */
+  .shell {
+    position: absolute;
+    width: 5px; height: 10px;
+    background: linear-gradient(135deg, #f5c842, #a07820);
+    border-radius: 2px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .shell.eject {
+    animation: shell-eject 0.6s ease-out forwards;
+  }
+  @keyframes shell-eject {
+    0%   { opacity: 1; transform: translate(0,0) rotate(0deg); }
+    100% { opacity: 0; transform: translate(28px, 20px) rotate(120deg); }
+  }
+
+  /* Shockwave rings - burst outward toward viewer */
+  .shockwave {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .shockwave.boom {
+    animation: shockwave-out 0.6s ease-out forwards;
+  }
+  #sw2.boom { animation-delay: 0.08s; border-color: var(--accent2); }
+  #sw3.boom { animation-delay: 0.16s; border-color: var(--gold); }
+  @keyframes shockwave-out {
+    0%   { transform: translate(-50%,-50%) scale(0.3); opacity: 1; }
+    100% { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
+  }
+
+  /* Scroll indicator label */
+  .shooter-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 1.25rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 5rem 1.5rem; }
+    .hero { padding: 7rem 1.5rem 3rem; }
+    .hero-stats { position: static; margin-top: 3rem; flex-direction: row; gap: 2rem; }
+    .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .process-list { grid-template-columns: 1fr; }
+    .process-item { margin: -1px 0 0; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">P<span>R</span></a>
+  <ul class="nav-links">
+    <li><a href="#work">Work</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- PROFILE SHOOTER -->
+<div class="shooter-wrapper" id="shooter">
+  <div class="shooter-frame" id="shooterFrame">
+    <svg class="progress-ring" id="progressRing" viewBox="0 0 80 80">
+      <circle cx="40" cy="40" r="36" id="progressCircle"/>
+    </svg>
+    <div class="muzzle-flash" id="muzzleFlash"></div>
+    <img 
+      src="https://i.postimg.cc/50GZVRBn/prprpr.jpg"
+      referrerpolicy="no-referrer"
+      crossorigin="anonymous"
+      alt="PR"
+      id="profileImg"
+      draggable="false"
+    />
+    <div class="shell" id="shell"></div>
+    <!-- Shockwave rings -->
+    <div class="shockwave" id="sw1"></div>
+    <div class="shockwave" id="sw2"></div>
+    <div class="shockwave" id="sw3"></div>
+  </div>
+  <div class="shooter-label" id="shooterLabel">scroll</div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-text">VIDEO</div>
+  <div class="hero-tag">Available for projects</div>
+  <h1 class="hero-name">
+    <div class="glitch" data-text="COOK">COOK</div>
+    <div class="line2">EDITOR</div>
+  </h1>
+  <p class="hero-sub">
+    I don't just edit — I <span class="highlight">cook</span>. From <strong>AI-generated films</strong> to <strong>pro-level cinematic cuts</strong>, every frame is intentional. Every transition earned.
+  </p>
+  <div class="hero-cta">
+    <a href="#work" class="btn-primary">See my work</a>
+    <a href="#contact" class="btn-ghost">Let's work together</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">78<span>+</span></div>
+      <div class="stat-label">Videos delivered</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">2<span>x</span></div>
+      <div class="stat-label">AI & Pro edits</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track">
+    <span>◆</span> AI VIDEO &nbsp; <span>◆</span> FRAME-BY-FRAME &nbsp; <span>◆</span> CINEMATIC EDITS &nbsp; <span>◆</span> CUSTOM TRANSITIONS &nbsp; <span>◆</span> CRYPTO CONTENT &nbsp; <span>◆</span> MOTION DESIGN &nbsp; <span>◆</span> STORYTELLING &nbsp;
+    <span>◆</span> AI VIDEO &nbsp; <span>◆</span> FRAME-BY-FRAME &nbsp; <span>◆</span> CINEMATIC EDITS &nbsp; <span>◆</span> CUSTOM TRANSITIONS &nbsp; <span>◆</span> CRYPTO CONTENT &nbsp; <span>◆</span> MOTION DESIGN &nbsp; <span>◆</span> STORYTELLING &nbsp;
+  </div>
+</div>
+
+<!-- WORK -->
+<section class="work" id="work">
+  <div class="section-label" data-num="01">Work</div>
+  <h2 class="section-title fade-in">Selected<br><em style="font-style:italic; color: var(--muted);">Pieces</em></h2>
+
+  <div class="work-grid">
+
+    <div class="work-card fade-in">
+      <div class="work-card-thumb thumb-1">
+        <div class="work-card-thumb-inner">🎬</div>
+        <div class="work-card-overlay"></div>
+        <div class="play-btn">▶</div>
+      </div>
+      <div class="work-card-info">
+        <div class="work-card-tag">AI Generated</div>
+        <div class="work-card-title">irlcoin Thesis Film</div>
+        <div class="work-card-desc">Full AI-generated thesis video for @irlcoin_. Took nearly a week to perfect — every frame hand-crafted and layered.</div>
+      </div>
+    </div>
+
+    <div class="work-card fade-in">
+      <div class="work-card-thumb thumb-2">
+        <div class="work-card-thumb-inner">🌆</div>
+        <div class="work-card-overlay"></div>
+        <div class="play-btn">▶</div>
+      </div>
+      <div class="work-card-info">
+        <div class="work-card-tag">Frame by Frame</div>
+        <div class="work-card-title">Cyberpunk City Reel</div>
+        <div class="work-card-desc">Completely AI generated frame by frame. Added custom transition layers to each frame — one of the most technical pieces.</div>
+      </div>
+    </div>
+
+    <div class="work-card fade-in">
+      <div class="work-card-thumb thumb-3">
+        <div class="work-card-thumb-inner">🕷️</div>
+        <div class="work-card-overlay"></div>
+        <div class="play-btn">▶</div>
+      </div>
+      <div class="work-card-info">
+        <div class="work-card-tag">AI + Cinematic</div>
+        <div class="work-card-title">$PLOTTING Series</div>
+        <div class="work-card-desc">36-video content series created for $PLOTTING. Narrative-driven AI edits blending visual storytelling with crypto culture.</div>
+      </div>
+    </div>
+
+    <div class="work-card fade-in">
+      <div class="work-card-thumb thumb-4">
+        <div class="work-card-thumb-inner">⚡</div>
+        <div class="work-card-overlay"></div>
+        <div class="play-btn">▶</div>
+      </div>
+      <div class="work-card-info">
+        <div class="work-card-tag">Pro Edit</div>
+        <div class="work-card-title">KOL Promo — Sling</div>
+        <div class="work-card-desc">A full custom KOL video with AI-generated imagery and hand-built transitions. Every frame generated, every cut surgical.</div>
+      </div>
+    </div>
+
+    <div class="work-card fade-in">
+      <div class="work-card-thumb thumb-5">
+        <div class="work-card-thumb-inner">🌊</div>
+        <div class="work-card-overlay"></div>
+        <div class="play-btn">▶</div>
+      </div>
+      <div class="work-card-info">
+        <div class="work-card-tag">Motion Design</div>
+        <div class="work-card-title">Cinematic Trailer Cut</div>
+        <div class="work-card-desc">High-energy cinematic trailer with custom sound design sync. Built to hit hard in the first 3 seconds.</div>
+      </div>
+    </div>
+
+    <div class="work-card fade-in">
+      <div class="work-card-thumb thumb-6">
+        <div class="work-card-thumb-inner">🔥</div>
+        <div class="work-card-overlay"></div>
+        <div class="play-btn">▶</div>
+      </div>
+      <div class="work-card-info">
+        <div class="work-card-tag">AI Video</div>
+        <div class="work-card-title">Anime + Crypto Edit</div>
+        <div class="work-card-desc">Blending anime aesthetics with web3 storytelling. AI-assisted generation with pro-grade finishing and color grading.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:3rem; text-align:center;">
+    <a href="https://x.com/allTimePR/status/2000876236965601397" target="_blank" class="btn-ghost" style="display:inline-block; cursor:none;">
+      View full thread on X →
+    </a>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-label" data-num="02">About</div>
+  <h2 class="section-title fade-in">I'm a <em style="font-style:italic; color:var(--accent);">Cook.</em><br>Not just an editor.</h2>
+
+  <div class="about-grid">
+    <div>
+      <!-- Big profile image in about -->
+      <div style="position:relative; margin-bottom:2.5rem; display:inline-block;">
+        <img 
+          src="https://i.postimg.cc/50GZVRBn/prprpr.jpg"
+          referrerpolicy="no-referrer"
+          alt="PR — Video Editor"
+          id="aboutImg"
+          style="width:280px; height:280px; object-fit:cover; object-position:top; display:block; filter:grayscale(15%) contrast(1.15); clip-path:polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));"
+        />
+        <div style="position:absolute; bottom:0; left:0; right:0; height:60px; background:linear-gradient(to top, #080808, transparent); pointer-events:none;"></div>
+        <div style="position:absolute; top:12px; right:-12px; background:var(--accent); color:#fff; font-family:'Bebas Neue',sans-serif; font-size:0.9rem; letter-spacing:0.15em; padding:0.3rem 0.75rem; clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));">
+          COOK
+        </div>
+        <!-- Animated scan line on image -->
+        <div id="imgScan" style="position:absolute; top:0; left:0; width:100%; height:3px; background:linear-gradient(to right, transparent, var(--accent2), transparent); opacity:0.7; animation:img-scan 2.5s ease-in-out infinite;"></div>
+      </div>
+      <style>
+        @keyframes img-scan {
+          0% { top:0%; opacity:0.7; }
+          50% { opacity:1; }
+          100% { top:100%; opacity:0; }
+        }
+        #aboutImg { transition: filter 0.3s; }
+        #aboutImg:hover { filter: grayscale(0%) contrast(1.2) brightness(1.05); }
+      </style>
+      <p class="about-body">
+        I've been deep in the <strong>bagworking arc</strong> — creating 78+ videos spanning <span class="accent">AI-generated films</span>, <strong>pro cinematic edits</strong>, and everything in between.<br><br>
+        My work lives at the intersection of technology and artistry. I use AI as a <strong>tool, not a crutch</strong> — crafting every frame with intentionality, adding custom transitions, and engineering visual stories that land hard.<br><br>
+        From crypto content to full narrative films, if it moves — <strong>I can make it cook.</strong>
+      </p>
+    </div>
+    <div>
+      <div style="font-size:0.6rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--muted); margin-bottom:1.5rem;">What I do</div>
+      <div class="skills-grid">
+        <div class="skill-pill">AI Video Gen</div>
+        <div class="skill-pill">Frame Editing</div>
+        <div class="skill-pill">Motion Design</div>
+        <div class="skill-pill">Transitions</div>
+        <div class="skill-pill">Color Grading</div>
+        <div class="skill-pill">Sound Sync</div>
+        <div class="skill-pill">Crypto Content</div>
+        <div class="skill-pill">KOL Promos</div>
+        <div class="skill-pill">Storytelling</div>
+        <div class="skill-pill">Cinematic Cut</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process" style="background: var(--surface);">
+  <div class="section-label" data-num="03">Process</div>
+  <h2 class="section-title fade-in">How I<br>cook.</h2>
+  <div class="process-list fade-in">
+    <div class="process-item">
+      <div class="process-num">01</div>
+      <div class="process-title">Concept First</div>
+      <div class="process-desc">Every great video starts with a clear vision. I understand your story, your audience, and what needs to hit — before a single frame is touched.</div>
+    </div>
+    <div class="process-item">
+      <div class="process-num">02</div>
+      <div class="process-title">Frame by Frame</div>
+      <div class="process-desc">Whether AI-generated or raw footage, I work methodically through each cut. No auto-anything. Every transition is built by hand.</div>
+    </div>
+    <div class="process-item">
+      <div class="process-num">03</div>
+      <div class="process-title">Final Polish</div>
+      <div class="process-desc">Color, sound, pacing. The details that separate an edit from an experience. I don't call it done until it feels right.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="section-label" data-num="04">Contact</div>
+  <h2 class="section-title fade-in">Let's build<br>something insane.</h2>
+  <div class="contact-inner">
+    <p class="contact-sub">
+      Got a project that needs a real chef behind it? I'm open to AI video, cinematic edits, crypto content, and long-form series. Let's cook.
+    </p>
+    <div class="contact-links">
+      <a href="https://x.com/allTimePR" target="_blank" class="contact-link">
+        <span class="icon">𝕏</span>
+        @allTimePR
+      </a>
+      <a href="https://x.com/allTimePR/status/2000876236965601397" target="_blank" class="contact-link">
+        <span class="icon">🎬</span>
+        View Work Thread
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>© 2025 PR — Video Editor</div>
+  <div>Crafted frame by frame <span style="color:var(--accent)">◆</span> <a href="https://x.com/allTimePR">@allTimePR</a></div>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.transform = `translate(${mx - 6}px, ${my - 6}px)`;
+  });
+  function animRing() {
+    rx += (mx - rx - 18) * 0.12;
+    ry += (my - ry - 18) * 0.12;
+    ring.style.transform = `translate(${rx}px, ${ry}px)`;
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  // Nav scroll
+  window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // Typewriter
+  const words = ['AI Films', 'Cinematic Cuts', 'Pro Edits', 'Visual Stories', 'Crypto Content'];
+  let wi = 0, ci = 0, del = false;
+  const tw = document.querySelector('.typewriter');
+  if (tw) {
+    function typeLoop() {
+      const w = words[wi];
+      if (!del) {
+        tw.textContent = w.slice(0, ++ci);
+        if (ci === w.length) { del = true; setTimeout(typeLoop, 1800); return; }
+      } else {
+        tw.textContent = w.slice(0, --ci);
+        if (ci === 0) { del = false; wi = (wi + 1) % words.length; }
+      }
+      setTimeout(typeLoop, del ? 60 : 90);
+    }
+    typeLoop();
+  }
+
+  // SHOOTER SCROLL ANIMATION
+  const frameEl = document.getElementById('shooterFrame');
+  const flashEl = document.getElementById('muzzleFlash');
+  const shellEl = document.getElementById('shell');
+  const progressCircle = document.getElementById('progressCircle');
+  const sw1 = document.getElementById('sw1');
+  const sw2 = document.getElementById('sw2');
+  const sw3 = document.getElementById('sw3');
+  const circumference = 2 * Math.PI * 36;
+
+  // Image fallback if hotlink blocked
+  const profileImg = document.getElementById('profileImg');
+  profileImg.onerror = function() {
+    // Replace with inline SVG as fallback
+    const fallback = document.createElement('div');
+    fallback.style.cssText = 'width:100%;height:100%;background:linear-gradient(135deg,#1a0000,#3d0000);display:flex;align-items:center;justify-content:center;font-family:Bebas Neue,sans-serif;font-size:2.2rem;color:#ff3c00;letter-spacing:0.05em;';
+    fallback.textContent = 'PR';
+    this.parentNode.replaceChild(fallback, this);
+  };
+
+  let lastScrollY = window.scrollY;
+  let isFiring = false;
+  let scrollAccum = 0;
+  const FIRE_THRESHOLD = 55;
+
+  function fireBullet() {
+    if (isFiring) return;
+    isFiring = true;
+
+    // Muzzle flash
+    flashEl.classList.remove('flash');
+    void flashEl.offsetWidth;
+    flashEl.classList.add('flash');
+
+    // Recoil on frame
+    frameEl.classList.remove('recoil');
+    void frameEl.offsetWidth;
+    frameEl.classList.add('recoil');
+
+    // Shockwaves burst outward (gun pointing at viewer)
+    [sw1, sw2, sw3].forEach(sw => {
+      sw.classList.remove('boom');
+      void sw.offsetWidth;
+      sw.classList.add('boom');
+    });
+
+    // Shell casing eject
+    shellEl.classList.remove('eject');
+    void shellEl.offsetWidth;
+    shellEl.style.top = '35px';
+    shellEl.style.right = '10px';
+    shellEl.classList.add('eject');
+
+    // Flash the border red
+    frameEl.style.borderColor = '#fff';
+    frameEl.style.boxShadow = '0 0 0 4px rgba(255,255,255,0.5), 0 0 40px rgba(255,60,0,0.9)';
+    setTimeout(() => {
+      frameEl.style.borderColor = 'var(--accent)';
+      frameEl.style.boxShadow = '0 0 0 4px rgba(255,60,0,0.15), 0 0 20px rgba(255,60,0,0.3)';
+    }, 180);
+
+    setTimeout(() => {
+      frameEl.classList.remove('recoil');
+      flashEl.classList.remove('flash');
+      isFiring = false;
+    }, 650);
+  }
+
+  window.addEventListener('scroll', () => {
+    const currentY = window.scrollY;
+    const delta = Math.abs(currentY - lastScrollY);
+    const maxScroll = document.body.scrollHeight - window.innerHeight;
+    const progress = maxScroll > 0 ? currentY / maxScroll : 0;
+
+    // Update progress ring
+    const offset = circumference - progress * circumference;
+    progressCircle.style.strokeDasharray = circumference;
+    progressCircle.style.strokeDashoffset = offset;
+
+    // Glow intensity based on scroll speed
+    const glowIntensity = Math.min(delta / 8, 1);
+    if (!isFiring) {
+      frameEl.style.boxShadow = `0 0 0 4px rgba(255,60,0,${0.15 + glowIntensity * 0.35}), 0 0 ${20 + glowIntensity * 35}px rgba(255,60,0,${0.3 + glowIntensity * 0.5})`;
+    }
+
+    // Accumulate scroll distance and fire
+    scrollAccum += delta;
+    if (scrollAccum >= FIRE_THRESHOLD) {
+      scrollAccum = 0;
+      fireBullet();
+    }
+
+    lastScrollY = currentY;
+  }, { passive: true });
+
+  // Fade in on scroll
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
