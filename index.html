@@ -1009,20 +1009,20 @@
 
 
 <!-- SIDEBAR OVERLAY -->
-<div class="nav-overlay" id="navOverlay" onclick="closeMobileNav()"></div>
+<div class="nav-overlay" id="navOverlay"></div>
 
 <!-- MOBILE NAV SIDEBAR -->
 <div class="mobile-nav" id="mobileNav">
   <div class="nav-sidebar-top">
     <div class="nav-sidebar-logo">P<span>R</span></div>
-    <button class="nav-close-btn" onclick="closeMobileNav()" aria-label="Close menu">✕</button>
+    <button class="nav-close-btn" id="navCloseBtn" aria-label="Close menu">✕</button>
   </div>
   <nav class="nav-sidebar-links">
-    <a href="#work" onclick="closeMobileNav()">Work</a>
-    <a href="#websites" onclick="closeMobileNav()">Websites</a>
-    <a href="#about" onclick="closeMobileNav()">About</a>
-    <a href="#process" onclick="closeMobileNav()">Process</a>
-    <a href="#contact" onclick="closeMobileNav()">Contact</a>
+    <a href="#work" class="sidebar-link">Work</a>
+    <a href="#websites" class="sidebar-link">Websites</a>
+    <a href="#about" class="sidebar-link">About</a>
+    <a href="#process" class="sidebar-link">Process</a>
+    <a href="#contact" class="sidebar-link">Contact</a>
   </nav>
   <div class="nav-sidebar-footer">© allTimePR — All rights reserved</div>
 </div>
@@ -1037,7 +1037,7 @@
     <li><a href="#process">Process</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
-  <button class="hamburger" id="hamburger" aria-label="Menu" onclick="toggleMobileNav()">
+  <button class="hamburger" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
 </nav>
@@ -1385,37 +1385,44 @@
 
 
   // Mobile nav sidebar
-  function toggleMobileNav() {
-    const nav = document.getElementById('mobileNav');
+  (function() {
+    const nav    = document.getElementById('mobileNav');
     const overlay = document.getElementById('navOverlay');
-    const isOpen = nav.classList.contains('open');
-    if (isOpen) {
-      closeMobileNav();
-    } else {
+    const hamburger = document.getElementById('hamburger');
+    const closeBtn  = document.getElementById('navCloseBtn');
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+    function openNav() {
       nav.classList.add('open');
       overlay.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
-  }
-  function closeMobileNav() {
-    document.getElementById('mobileNav').classList.remove('open');
-    document.getElementById('navOverlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
+    function closeNav() {
+      nav.classList.remove('open');
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
 
-  // Swipe right to close sidebar
-  (function() {
-    let touchStartX = 0;
-    let touchStartY = 0;
-    const sidebar = document.getElementById('mobileNav');
-    sidebar.addEventListener('touchstart', function(e) {
+    hamburger.addEventListener('click', function() {
+      nav.classList.contains('open') ? closeNav() : openNav();
+    });
+    closeBtn.addEventListener('click', closeNav);
+    overlay.addEventListener('click', closeNav);
+    sidebarLinks.forEach(function(link) {
+      link.addEventListener('click', closeNav);
+    });
+
+    // Swipe right anywhere on screen to close
+    let touchStartX = 0, touchStartY = 0;
+    document.addEventListener('touchstart', function(e) {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
     }, { passive: true });
-    sidebar.addEventListener('touchend', function(e) {
+    document.addEventListener('touchend', function(e) {
+      if (!nav.classList.contains('open')) return;
       const dx = e.changedTouches[0].clientX - touchStartX;
       const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
-      if (dx > 60 && dy < 80) closeMobileNav();
+      if (dx > 60 && dy < 80) closeNav();
     }, { passive: true });
   })();
 
