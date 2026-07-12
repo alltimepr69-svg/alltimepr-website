@@ -252,10 +252,11 @@
     overflow: hidden;
   }
   .hero-media video {
-    width: 100%; height: 115%;
+    display: block;
+    width: 100%; height: 100%;
     object-fit: cover;
-    opacity: 0.45;
-    will-change: transform;
+    opacity: 0.8;
+    will-change: opacity;
   }
   .hero-media::after {
     content: '';
@@ -806,6 +807,37 @@
 
   /* ───────── REVEAL UTILS ───────── */
   [data-reveal] { opacity: 0; transform: translateY(40px); will-change: transform, opacity; }
+  [data-lines] { opacity: 0; }
+  .split-line { display: block; }
+  .split-line-mask { display: block; overflow: hidden; }
+
+  /* ───────── SCROLL PROGRESS ───────── */
+  .scroll-progress {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 2px; z-index: 950;
+    background: linear-gradient(90deg, var(--accent), var(--acid));
+    transform: scaleX(0); transform-origin: 0 50%;
+    pointer-events: none;
+  }
+
+  /* ───────── CTA GLOW ───────── */
+  .cta { isolation: isolate; }
+  .cta-glow {
+    position: absolute; z-index: -1;
+    top: 50%; left: 50%;
+    width: 70vw; height: 70vw; max-width: 900px; max-height: 900px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 50% 50%, rgba(255,77,0,0.16), rgba(255,77,0,0) 60%);
+    pointer-events: none;
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .cta-glow { animation: ctaGlow 9s ease-in-out infinite; }
+  }
+  @keyframes ctaGlow {
+    0%,100% { transform: translate(-54%, -48%) scale(1); }
+    50% { transform: translate(-46%, -52%) scale(1.15); }
+  }
 
   /* ───────── RESPONSIVE ───────── */
   @media (max-width: 1150px) {
@@ -844,6 +876,7 @@
 <body>
 
 <div class="grain"></div>
+<div class="scroll-progress" id="scrollProgress"></div>
 
 <!-- PRELOADER -->
 <div class="preloader" id="preloader">
@@ -893,9 +926,7 @@
 <!-- HERO -->
 <header class="hero">
   <div class="hero-media">
-    <video autoplay muted loop playsinline id="heroVideo">
-      <source src="bg.mp4" type="video/mp4">
-    </video>
+    <video id="heroVideo" muted playsinline preload="auto" poster="hero-poster.jpg" aria-hidden="true"></video>
   </div>
 
   <div class="hero-inner">
@@ -947,20 +978,40 @@
         <span class="line"><span><em>actually</em>&nbsp;<span class="out">hit</span></span></span>
       </h2>
     </div>
-    <p class="sec-side" data-reveal>
+    <p class="sec-side" data-reveal data-lines>
       Every frame hand-crafted. No auto-anything. From viral promos to full
       AI thesis films — this is what cooking looks like.
     </p>
   </div>
 
   <div class="work-grid">
+    <a class="work-card" data-reveal data-view href="https://x.com/allTimePR/status/2073475179771281880" target="_blank" rel="noopener noreferrer">
+      <div class="work-thumb">
+        <div class="img" style="background-image:url('work-black-bull.jpg')"></div>
+        <span class="badge">Reposted by Ansem · 1.1K Likes</span>
+        <span class="go">→</span>
+      </div>
+      <div class="work-meta"><span class="work-title">The Black Bull — for Ansem</span><span class="work-num">/ 01</span></div>
+      <p class="work-desc">The black bull returns to save the trenches. Made for @blknoiz06 — Ansem reposted and commented himself. 1.1K+ likes.</p>
+    </a>
+
+    <a class="work-card" data-reveal data-view href="https://x.com/allTimePR/status/2075223536650813795" target="_blank" rel="noopener noreferrer">
+      <div class="work-thumb">
+        <div class="img" style="background-image:url('https://pbs.twimg.com/amplify_video_thumb/2075222557704474624/img/8hqdoCU4HWE3CpqP.jpg')"></div>
+        <span class="badge">OG Pump Communities</span>
+        <span class="go">→</span>
+      </div>
+      <div class="work-meta"><span class="work-title">United Bulls — Community Homage</span><span class="work-num">/ 02</span></div>
+      <p class="work-desc">A homage to some of the top OG pump communities. The bulls and Ansem united to defeat the strongest of the bears.</p>
+    </a>
+
     <a class="work-card" data-reveal data-view href="https://x.com/allTimePR/status/2000877161851576573" target="_blank" rel="noopener noreferrer">
       <div class="work-thumb">
         <div class="img" style="background-image:url('https://pbs.twimg.com/amplify_video_thumb/2000876241000521728/img/ebBVgc_K2pcz-Q4H.jpg')"></div>
         <span class="badge">AI Generated</span>
         <span class="go">→</span>
       </div>
-      <div class="work-meta"><span class="work-title">irlcoin — Thesis Film</span><span class="work-num">/ 01</span></div>
+      <div class="work-meta"><span class="work-title">irlcoin — Thesis Film</span><span class="work-num">/ 03</span></div>
       <p class="work-desc">Full AI-generated thesis video for @irlcoin_. Nearly a week to perfect — every frame layered by hand.</p>
     </a>
 
@@ -970,7 +1021,7 @@
         <span class="badge">Viral · 60K on TikTok</span>
         <span class="go">→</span>
       </div>
-      <div class="work-meta"><span class="work-title">Pumpfolio — irlcoin</span><span class="work-num">/ 02</span></div>
+      <div class="work-meta"><span class="work-title">Pumpfolio — irlcoin</span><span class="work-num">/ 04</span></div>
       <p class="work-desc">The promo that hit 60K views on TikTok. Sharp cuts, clean energy, built to go viral.</p>
     </a>
 
@@ -980,7 +1031,7 @@
         <span class="badge">AI + Cinematic</span>
         <span class="go">→</span>
       </div>
-      <div class="work-meta"><span class="work-title">Heisenberg — Artifact Hunt</span><span class="work-num">/ 03</span></div>
+      <div class="work-meta"><span class="work-title">Heisenberg — Artifact Hunt</span><span class="work-num">/ 05</span></div>
       <p class="work-desc">Cinematic AI film — every scene a visual statement. A rare cook.</p>
     </a>
 
@@ -990,7 +1041,7 @@
         <span class="badge">Studio Level</span>
         <span class="go">→</span>
       </div>
-      <div class="work-meta"><span class="work-title">Telegram Bot — Action Promo</span><span class="work-num">/ 04</span></div>
+      <div class="work-meta"><span class="work-title">Telegram Bot — Action Promo</span><span class="work-num">/ 06</span></div>
       <p class="work-desc">Studio-level action scenes. Cinematic tension, hard-hitting from frame one.</p>
     </a>
 
@@ -1000,7 +1051,7 @@
         <span class="badge">AI + Cinematic</span>
         <span class="go">→</span>
       </div>
-      <div class="work-meta"><span class="work-title">Avatar — Digital Madness</span><span class="work-num">/ 05</span></div>
+      <div class="work-meta"><span class="work-title">Avatar — Digital Madness</span><span class="work-num">/ 07</span></div>
       <p class="work-desc">An AI-crafted film about an avatar born to fight digital madness. Built to hit.</p>
     </a>
 
@@ -1010,7 +1061,7 @@
         <span class="badge">AI Generated</span>
         <span class="go">→</span>
       </div>
-      <div class="work-meta"><span class="work-title">$FREEDOM — Thesis Film</span><span class="work-num">/ 06</span></div>
+      <div class="work-meta"><span class="work-title">$FREEDOM — Thesis Film</span><span class="work-num">/ 08</span></div>
       <p class="work-desc">Cinematic, narrative-driven — built to make believers out of viewers.</p>
     </a>
   </div>
@@ -1040,7 +1091,7 @@
         <span class="line"><span><em>build.</em></span></span>
       </h2>
     </div>
-    <p class="sec-side" data-reveal>
+    <p class="sec-side" data-reveal data-lines>
       Videos aren't enough. I build the full package — landing pages,
       crypto sites, interactive experiences. Everything a project needs to convert.
     </p>
@@ -1122,11 +1173,11 @@
     </div>
 
     <div class="about-body">
-      <p data-reveal>
+      <p data-reveal data-lines>
         Deep in the <strong>bagworking arc</strong> — <span class="hl">180+ videos</span> spanning
         AI-generated films, pro cinematic edits, and everything in between.
       </p>
-      <p data-reveal>
+      <p data-reveal data-lines>
         My work lives at the intersection of technology and artistry. AI is a
         <strong>tool, not a crutch</strong> — every frame crafted with intent, every
         transition built by hand.
@@ -1196,12 +1247,13 @@
 
 <!-- CTA / CONTACT -->
 <section class="cta" id="contact">
+  <div class="cta-glow" aria-hidden="true"></div>
   <div class="sec-tag" data-reveal style="justify-content:center;">05 — Contact</div>
   <h2 class="cta-big" data-title>
     <span class="line"><span>Let's build</span></span>
     <span class="line"><span>something <em>insane</em></span></span>
   </h2>
-  <p class="cta-sub" data-reveal>
+  <p class="cta-sub" data-reveal data-lines>
     Got a project that needs a real chef behind it? AI video, cinematic edits,
     crypto content, full websites, long-form series. Let's cook.
   </p>
@@ -1260,8 +1312,10 @@
   </div>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrambleTextPlugin.min.js"></script>
 <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
 <script>
 (function () {
@@ -1306,6 +1360,74 @@
     });
   });
 
+  /* ── HERO SCROLL VIDEO ── */
+  function initHeroVideo() {
+    var video = document.getElementById('heroVideo');
+    if (!video) return;
+    var heroEl = document.querySelector('.hero');
+    var scrub = !isTouch && !reduced;   // desktop scrubs on scroll; touch/reduced loops
+
+    video.muted = true;
+    video.setAttribute('muted', '');
+
+    // touch devices + reduced-motion: lightweight autoplay loop (scrubbing is unreliable there)
+    if (!scrub) {
+      video.src = 'hero-mobile.mp4';
+      video.loop = true;
+      var tryPlay = function () { var p = video.play(); if (p && p.catch) p.catch(function () {}); };
+      video.addEventListener('canplay', tryPlay, { once: true });
+      tryPlay();
+      return;
+    }
+
+    // desktop: scrub currentTime from hero scroll progress
+    video.src = 'hero.mp4';
+    video.loop = false;
+
+    var START = 1.5;   // scroll scrub begins at 1.5s of the clip
+    var duration = 0, target = START, current = START, primed = false;
+    video.addEventListener('loadedmetadata', function () {
+      duration = video.duration || 0;
+      try { video.currentTime = START; } catch (e) {}
+    });
+    // prime the decoder (Safari won't paint seeked frames until it has played once)
+    function prime() {
+      if (primed) return; primed = true;
+      var p = video.play();
+      if (p && p.then) p.then(function () { video.pause(); }).catch(function () {});
+      else { try { video.pause(); } catch (e) {} }
+    }
+    video.addEventListener('canplay', prime, { once: true });
+
+    function progress() {
+      if (!heroEl) return 0;
+      var r = heroEl.getBoundingClientRect();
+      var p = (-r.top) / (r.height || 1);
+      return p < 0 ? 0 : (p > 1 ? 1 : p);
+    }
+
+    var rafId = null, running = false;
+    function loop() {
+      if (duration) {
+        target = START + progress() * (duration - START - 0.05);
+        current += (target - current) * 0.12;   // ease toward target for smooth scrub
+        if (!video.seeking && Math.abs(current - video.currentTime) > 0.03) {
+          try { video.currentTime = current; } catch (e) {}
+        }
+      }
+      rafId = requestAnimationFrame(loop);
+    }
+    function start() { if (running) return; running = true; loop(); }
+    function stop() { running = false; if (rafId) cancelAnimationFrame(rafId); }
+    start();
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (ents) {
+        ents.forEach(function (e) { e.isIntersecting ? start() : stop(); });
+      }, { threshold: 0 }).observe(heroEl);
+    }
+  }
+  initHeroVideo();
+
   /* ── PRELOADER ── */
   var pre = document.getElementById('preloader');
   var preCount = document.getElementById('preCount');
@@ -1323,7 +1445,7 @@
     var tl = gsap.timeline();
     tl.to('.hero .ch', { y: 0, duration: 1.1, ease: 'power4.out', stagger: 0.045 })
       .to('.hero .o', { opacity: 1, duration: 0.9, ease: 'power2.out', stagger: 0.08 }, '-=0.6')
-      .from('#heroVideo', { scale: 1.15, duration: 1.6, ease: 'power3.out' }, 0);
+      .from('#heroVideo', { opacity: 0, duration: 1.6, ease: 'power2.out' }, 0);
   }
 
   function finishLoad() {
@@ -1412,6 +1534,20 @@
     });
   }
 
+  /* ── HERO TITLE POINTER PARALLAX ── */
+  if (!isTouch && hasGsap && !reduced) {
+    var heroTitle = document.getElementById('heroTitle');
+    if (heroTitle) {
+      var htX = gsap.quickTo(heroTitle, 'x', { duration: 0.9, ease: 'power3' });
+      var htY = gsap.quickTo(heroTitle, 'y', { duration: 0.9, ease: 'power3' });
+      window.addEventListener('mousemove', function (e) {
+        var dx = e.clientX / window.innerWidth - 0.5;
+        var dy = e.clientY / window.innerHeight - 0.5;
+        htX(dx * 34); htY(dy * 22);
+      }, { passive: true });
+    }
+  }
+
   /* ── NAV HIDE/SHOW ── */
   var nav = document.getElementById('nav');
   var lastY = 0;
@@ -1439,14 +1575,102 @@
 
   /* ── SCROLL ANIMATIONS ── */
   if (hasGsap && !reduced) {
-    gsap.registerPlugin(ScrollTrigger);
+    var plugins = [ScrollTrigger];
+    if (typeof SplitText !== 'undefined') plugins.push(SplitText);
+    if (typeof ScrambleTextPlugin !== 'undefined') plugins.push(ScrambleTextPlugin);
+    gsap.registerPlugin.apply(gsap, plugins);
+    var hasSplit = typeof SplitText !== 'undefined';
+    var hasScramble = typeof ScrambleTextPlugin !== 'undefined';
 
-    // generic reveals
-    document.querySelectorAll('[data-reveal]').forEach(function (el) {
+    // generic reveals (cards + line-split paragraphs handled separately)
+    document.querySelectorAll('[data-reveal]:not(.work-card):not(.site-card):not([data-lines])').forEach(function (el) {
       gsap.to(el, {
         opacity: 1, y: 0, duration: 1, ease: 'power3.out',
         scrollTrigger: { trigger: el, start: 'top 88%' }
       });
+    });
+
+    // line-by-line paragraph reveals via SplitText (mask + stagger)
+    function setupLineReveals() {
+      document.querySelectorAll('[data-lines]').forEach(function (el) {
+        if (!hasSplit) {
+          gsap.to(el, { opacity: 1, y: 0, duration: 1, ease: 'power3.out',
+            scrollTrigger: { trigger: el, start: 'top 88%' } });
+          return;
+        }
+        gsap.set(el, { opacity: 1 });
+        SplitText.create(el, {
+          type: 'lines',
+          mask: 'lines',
+          linesClass: 'split-line',
+          autoSplit: true,
+          onSplit: function (self) {
+            return gsap.from(self.lines, {
+              yPercent: 115, duration: 0.95, ease: 'power4.out', stagger: 0.1,
+              scrollTrigger: { trigger: el, start: 'top 86%' }
+            });
+          }
+        });
+      });
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(setupLineReveals);
+    } else {
+      setupLineReveals();
+    }
+
+    // scramble-in section tags
+    if (hasScramble) {
+      document.querySelectorAll('.sec-tag').forEach(function (tag) {
+        var finalText = tag.textContent.trim();
+        ScrollTrigger.create({
+          trigger: tag, start: 'top 92%', once: true,
+          onEnter: function () {
+            gsap.to(tag, {
+              duration: 1.1, ease: 'none',
+              scrambleText: { text: finalText, chars: 'upperAndLowerCase', speed: 0.45, revealDelay: 0.25 }
+            });
+          }
+        });
+      });
+    }
+
+    // work + site cards: reveal + inner-image parallax
+    gsap.utils.toArray('.work-card, .site-card').forEach(function (card) {
+      gsap.to(card, {
+        opacity: 1, y: 0, duration: 1.05, ease: 'power3.out',
+        scrollTrigger: { trigger: card, start: 'top 90%' }
+      });
+      var inner = card.querySelector('.work-thumb .img');
+      if (inner) {
+        gsap.fromTo(inner, { yPercent: -7 }, {
+          yPercent: 7, ease: 'none',
+          scrollTrigger: { trigger: card, start: 'top bottom', end: 'bottom top', scrub: true }
+        });
+      }
+    });
+
+    // velocity-reactive skew on thumbnails
+    if (lenis) {
+      var skewTargets = gsap.utils.toArray('.work-thumb, .site-shot');
+      if (skewTargets.length) {
+        var skewTo = gsap.quickTo(skewTargets, 'skewY', { duration: 0.55, ease: 'power3' });
+        gsap.ticker.add(function () {
+          skewTo(gsap.utils.clamp(-3.5, 3.5, lenis.velocity * 0.04));
+        });
+      }
+    }
+
+    // staggered skill chips
+    gsap.from('.skill', {
+      opacity: 0, y: 18, duration: 0.6, ease: 'power3.out', stagger: 0.05,
+      scrollTrigger: { trigger: '.skills', start: 'top 88%' }
+    });
+
+    // scroll progress bar
+    gsap.to('#scrollProgress', {
+      scaleX: 1, ease: 'none',
+      scrollTrigger: { trigger: document.documentElement, start: 'top top', end: 'bottom bottom', scrub: 0.3 }
     });
 
     // section title line reveals
@@ -1455,12 +1679,6 @@
         y: 0, duration: 1.1, ease: 'power4.out', stagger: 0.12,
         scrollTrigger: { trigger: t, start: 'top 85%' }
       });
-    });
-
-    // hero video parallax
-    gsap.to('#heroVideo', {
-      yPercent: 18, ease: 'none',
-      scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true }
     });
 
     // reel: parallax video + text drift
